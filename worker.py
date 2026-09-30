@@ -1,4 +1,4 @@
-# worker.py – Motor / Trabajador con Extracción Real de 6 Vistas
+# worker.py – Motor / Trabajador Definitivo (Interfaz Web + API de Búsqueda Rápida)
 import os
 import re
 import json
@@ -282,7 +282,7 @@ class LiverpoolWorkerClient:
 
 client = LiverpoolWorkerClient()
 
-# ====================== Servidor FastAPI / Motor ======================
+# ====================== Servidor FastAPI + Interfaz Visual ======================
 app = FastAPI()
 
 @app.post("/procesar_lote")
@@ -324,7 +324,12 @@ async def procesar_lote(request: Request):
 
     return {"valid_records": valid_records, "offline": offline_dict}
 
-demo = gr.Interface(fn=lambda: "Motor Worker Activo y Escuchando", inputs=[], outputs="text")
+# Interfaz visual ligera para que UptimeRobot detecte el servicio en verde
+with gr.Blocks(title="Motor Worker Liverpool") as demo:
+    gr.Markdown("# ⚙️ Motor Worker de Liverpool Activo")
+    gr.Markdown("Este servicio opera de forma distribuida recibiendo peticiones del Cerebro Maestro.")
+    gr.Textbox(value="Motor operando con normalidad y listo para procesar solicitudes.", label="Estado del Sistema", interactive=False)
+
 demo.app = app
 
 if __name__ == "__main__":
