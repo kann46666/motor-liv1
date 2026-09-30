@@ -1,4 +1,4 @@
-# worker.py – Motor / Trabajador con Interfaz Visual Gradio (Clikeable para UptimeRobot)
+# worker.py – Motor / Trabajador Corregido y Estable
 import os
 import re
 import json
@@ -287,7 +287,6 @@ with gr.Blocks(title="Motor Worker Liverpool") as demo:
     gr.Markdown("Este servicio opera de forma síncrona recibiendo lotes de productos del Cerebro Maestro.")
     gr.Textbox(value="Motor operando con normalidad y listo para procesar solicitudes.", label="Estado del Sistema", interactive=False)
 
-# Añadir la ruta POST directamente al servidor subyacente de Gradio
 @demo.app.post("/procesar_lote")
 async def procesar_lote(request: Request):
     data = await request.json()
