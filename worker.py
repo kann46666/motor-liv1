@@ -1,4 +1,4 @@
-# worker.py – Motor / Trabajador Definitivo (Interfaz Web + API de Búsqueda Rápida)
+# worker.py – Motor / Trabajador Unificado (Interfaz Gradio + Búsqueda Perfecta de 6 Vistas)
 import os
 import re
 import json
@@ -11,8 +11,7 @@ import requests
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter, Retry
 import gradio as gr
-from fastapi import FastAPI, Request
-import uvicorn
+from fastapi import Request
 
 # ============================ Config ============================
 PATRON_IMG = r"https://(?:ss|sp)\d+\.liverpool\.com\.mx/(?:xl|i)/[\w\d\-\_]+\.jpg"
@@ -282,10 +281,13 @@ class LiverpoolWorkerClient:
 
 client = LiverpoolWorkerClient()
 
-# ====================== Servidor FastAPI + Interfaz Visual ======================
-app = FastAPI()
+# ====================== Interfaz Visual & API (Gradio + FastAPI) ======================
+with gr.Blocks(title="Motor Worker Liverpool") as demo:
+    gr.Markdown("# ⚙️ Motor Worker de Liverpool Activo")
+    gr.Markdown("Este servicio opera de forma síncrona recibiendo lotes de productos del Cerebro Maestro.")
+    gr.Textbox(value="Motor operando con normalidad y listo para procesar solicitudes.", label="Estado del Sistema", interactive=False)
 
-@app.post("/procesar_lote")
+@demo.app.post("/procesar_lote")
 async def procesar_lote(request: Request):
     data = await request.json()
     skus_lote = data.get("skus", [])
@@ -294,7 +296,12 @@ async def procesar_lote(request: Request):
     offline_dict = {}
 
     def procesar_individual(item):
-        grupo, sku = item
+        # Aseguramos compatibilidad si llega como lista de elementos [grupo, sku]
+        if isinstance(item, (list, tuple)) and len(item) >= 2:
+            grupo, sku = item[0], item[1]
+        else:
+            grupo, sku = "General", str(item)
+
         imgs, purl, pname, strat, p_actual, p_original, marca, categoria, estado = client.resolver_producto(sku)
         
         if strat == "offline / no encontrado" or not imgs[0]:
@@ -324,14 +331,6 @@ async def procesar_lote(request: Request):
 
     return {"valid_records": valid_records, "offline": offline_dict}
 
-# Interfaz visual ligera para que UptimeRobot detecte el servicio en verde
-with gr.Blocks(title="Motor Worker Liverpool") as demo:
-    gr.Markdown("# ⚙️ Motor Worker de Liverpool Activo")
-    gr.Markdown("Este servicio opera de forma distribuida recibiendo peticiones del Cerebro Maestro.")
-    gr.Textbox(value="Motor operando con normalidad y listo para procesar solicitudes.", label="Estado del Sistema", interactive=False)
-
-demo.app = app
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    demo.launch(server_name="0.0.0.0", server_port=port)
