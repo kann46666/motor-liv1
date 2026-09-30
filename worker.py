@@ -1,4 +1,4 @@
-# worker.py – Motor / Trabajador Corregido y Estable
+# worker.py – Motor / Trabajador con Extracción Real de 6 Vistas
 import os
 import re
 import json
@@ -11,7 +11,8 @@ import requests
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter, Retry
 import gradio as gr
-from fastapi import Request
+from fastapi import FastAPI, Request
+import uvicorn
 
 # ============================ Config ============================
 PATRON_IMG = r"https://(?:ss|sp)\d+\.liverpool\.com\.mx/(?:xl|i)/[\w\d\-\_]+\.jpg"
@@ -281,13 +282,10 @@ class LiverpoolWorkerClient:
 
 client = LiverpoolWorkerClient()
 
-# ====================== Interfaz Visual & API (Gradío + FastAPI) ======================
-with gr.Blocks(title="Motor Worker Liverpool") as demo:
-    gr.Markdown("# ⚙️ Motor Worker de Liverpool Activo")
-    gr.Markdown("Este servicio opera de forma síncrona recibiendo lotes de productos del Cerebro Maestro.")
-    gr.Textbox(value="Motor operando con normalidad y listo para procesar solicitudes.", label="Estado del Sistema", interactive=False)
+# ====================== Servidor FastAPI / Motor ======================
+app = FastAPI()
 
-@demo.app.post("/procesar_lote")
+@app.post("/procesar_lote")
 async def procesar_lote(request: Request):
     data = await request.json()
     skus_lote = data.get("skus", [])
@@ -326,6 +324,9 @@ async def procesar_lote(request: Request):
 
     return {"valid_records": valid_records, "offline": offline_dict}
 
+demo = gr.Interface(fn=lambda: "Motor Worker Activo y Escuchando", inputs=[], outputs="text")
+demo.app = app
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    demo.launch(server_name="0.0.0.0", server_port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port)
